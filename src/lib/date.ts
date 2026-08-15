@@ -15,3 +15,10 @@ export function toISODate(date: Date): string {
 export function todayISO(): string {
   return toISODate(new Date())
 }
+
+/** N days before today. setDate rolls months and years over correctly. */
+export function daysAgoISO(days: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  return toISODate(date)
+}

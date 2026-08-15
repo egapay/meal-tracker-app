@@ -24,6 +24,20 @@ export async function listEntriesByDate(date: string): Promise<FoodEntry[]> {
   return data.map(normalize)
 }
 
+/** Entries in [from, to). Ordered newest day first, chronological within a day. */
+export async function listEntriesBetween(from: string, to: string): Promise<FoodEntry[]> {
+  const { data, error } = await supabase
+    .from('food_entries')
+    .select(COLUMNS)
+    .gte('entry_date', from)
+    .lt('entry_date', to)
+    .order('entry_date', { ascending: false })
+    .order('created_at')
+
+  if (error) throw error
+  return data.map(normalize)
+}
+
 export async function createEntry(entry: NewFoodEntry): Promise<FoodEntry> {
   // Reads the cached session from localStorage, no network round trip.
   const { data: auth } = await supabase.auth.getSession()
