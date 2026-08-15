@@ -39,3 +39,22 @@ export async function createEntry(entry: NewFoodEntry): Promise<FoodEntry> {
   if (error) throw error
   return normalize(data)
 }
+
+// No user_id filter on these two: the RLS policy already restricts both to rows
+// this user owns, so an id belonging to someone else simply matches nothing.
+export async function updateEntry(id: string, entry: NewFoodEntry): Promise<FoodEntry> {
+  const { data, error } = await supabase
+    .from('food_entries')
+    .update(entry)
+    .eq('id', id)
+    .select(COLUMNS)
+    .single()
+
+  if (error) throw error
+  return normalize(data)
+}
+
+export async function deleteEntry(id: string): Promise<void> {
+  const { error } = await supabase.from('food_entries').delete().eq('id', id)
+  if (error) throw error
+}

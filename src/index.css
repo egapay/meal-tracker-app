@@ -164,20 +164,32 @@ button {
   background: var(--surface);
   border-radius: var(--radius);
   list-style: none;
+  /* Clips a row's pressed state to the rounded corners. */
+  overflow: hidden;
   padding: 0;
 }
 
+.entries li + li {
+  border-top: 1px solid var(--border);
+}
+
+/* A button, so the whole row is one large target that opens the edit sheet. */
 .entry {
   align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
   display: flex;
   gap: 12px;
   justify-content: space-between;
   min-height: var(--tap);
   padding: 12px var(--pad);
+  text-align: left;
+  width: 100%;
 }
 
-.entry + .entry {
-  border-top: 1px solid var(--border);
+.entry:active {
+  background: var(--surface-2);
 }
 
 .entry__name {
@@ -217,6 +229,13 @@ button {
   background: none;
   border: 1px solid var(--border);
   color: var(--text);
+}
+
+.btn--danger {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  margin-top: 10px;
 }
 
 /* Layout only. Sits directly above the tab bar, under the thumb one-handed. */
@@ -368,4 +387,9 @@ button {
 .screen__note {
   color: var(--text-dim);
   margin: 8px 0 24px;
+}
+
+/* Kept well clear of "Save goal" so signing out is never a mis-tap. */
+.settings__signout {
+  margin-top: 40px;
 }

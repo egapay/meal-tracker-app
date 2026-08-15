@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { MEAL_LABELS, MEAL_TYPES } from '../lib/types'
-import type { MealType, NewFoodEntry } from '../lib/types'
+import type { FoodEntry, MealType, NewFoodEntry } from '../lib/types'
 
 /** Saves a tap in the common case: log what you just ate, now. */
 function mealTypeForNow(): MealType {
@@ -14,15 +14,19 @@ function mealTypeForNow(): MealType {
 
 type Props = {
   defaultDate: string
+  /** Present in edit mode; absent means add. */
+  entry?: FoodEntry
   onSubmit: (entry: NewFoodEntry) => Promise<void>
+  onDelete?: () => Promise<void>
   onCancel: () => void
 }
 
-export default function AddEntryForm({ defaultDate, onSubmit, onCancel }: Props) {
-  const [name, setName] = useState('')
-  const [grams, setGrams] = useState('')
-  const [mealType, setMealType] = useState<MealType>(mealTypeForNow)
-  const [date, setDate] = useState(defaultDate)
+export default function EntryForm({ defaultDate, entry, onSubmit, onDelete, onCancel }: Props) {
+  const [name, setName] = useState(entry?.name ?? '')
+  const [grams, setGrams] = useState(entry ? String(entry.protein_grams) : '')
+  const [mealType, setMealType] = useState<MealType>(() => entry?.meal_type ?? mealTypeForNow())
+  const [date, setDate] = useState(entry?.entry_date ?? defaultDate)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,10 +55,22 @@ export default function AddEntryForm({ defaultDate, onSubmit, onCancel }: Props)
     }
   }
 
+  async function handleDelete() {
+    if (!onDelete) return
+    setBusy(true)
+    setError(null)
+    try {
+      await onDelete()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not delete.')
+      setBusy(false)
+    }
+  }
+
   return (
-    <div className="sheet" role="dialog" aria-modal="true" aria-label="Add food">
+    <div className="sheet" role="dialog" aria-modal="true" aria-label={entry ? 'Edit food' : 'Add food'}>
       <form className="sheet__panel" onSubmit={handleSubmit}>
-        <h2 className="sheet__title">Add food</h2>
+        <h2 className="sheet__title">{entry ? 'Edit food' : 'Add food'}</h2>
 
         <label className="field">
           <span className="field__label">Food</span>
@@ -64,7 +80,8 @@ export default function AddEntryForm({ defaultDate, onSubmit, onCancel }: Props)
             onChange={(e) => setName(e.target.value)}
             placeholder="3 Eggs"
             maxLength={80}
-            autoFocus
+            // Only when adding; editing shouldn't force the keyboard open.
+            autoFocus={!entry}
             required
           />
         </label>
@@ -120,6 +137,18 @@ export default function AddEntryForm({ defaultDate, onSubmit, onCancel }: Props)
             {busy ? 'Saving…' : 'Save'}
           </button>
         </div>
+
+        {/* Two taps, because this sits a thumb-width from Save and is not undoable. */}
+        {onDelete && (
+          <button
+            className="btn btn--danger"
+            type="button"
+            disabled={busy}
+            onClick={confirmingDelete ? handleDelete : () => setConfirmingDelete(true)}
+          >
+            {confirmingDelete ? 'Tap again to delete' : 'Delete'}
+          </button>
+        )}
       </form>
     </div>
   )
