@@ -1,8 +1,14 @@
+import { supabase } from '../lib/supabase'
+
 export default function Settings() {
   return (
-    <div className="placeholder">
-      <p className="placeholder__title">Settings</p>
-      <p>Your daily protein goal will be editable here.</p>
-    </div>
+    <>
+      <h1 className="screen__title">Settings</h1>
+      <p className="screen__note">Your daily protein goal will be editable here.</p>
+
+      <button className="btn btn--secondary" type="button" onClick={() => supabase.auth.signOut()}>
+        Sign out
+      </button>
+    </>
   )
 }

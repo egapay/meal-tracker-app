@@ -7,6 +7,7 @@
   --text-dim: #9aa0a8;
   --accent: #ff8a4c;
   --success: #4ade80;
+  --danger: #f87171;
 
   --radius: 14px;
   --pad: 16px;
@@ -191,22 +192,37 @@ button {
   white-space: nowrap;
 }
 
-/* --- Add button ---------------------------------------------------------- */
+/* --- Buttons ------------------------------------------------------------- */
 
-/* Sits directly above the tab bar so it falls under the thumb one-handed. */
-.add {
+.btn {
   background: var(--accent);
   border: none;
   border-radius: 999px;
   color: #14161a;
   font-size: 17px;
   font-weight: 600;
-  margin: 0 var(--pad) 12px;
   min-height: 52px;
+  width: 100%;
 }
 
-.add:active {
+.btn:active {
   opacity: 0.85;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+.btn--secondary {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* Layout only. Sits directly above the tab bar, under the thumb one-handed. */
+.add {
+  margin: 0 var(--pad) 12px;
+  width: auto;
 }
 
 /* --- Tab bar ------------------------------------------------------------- */
@@ -233,17 +249,69 @@ button {
   color: var(--accent);
 }
 
-/* --- Placeholder screens ------------------------------------------------- */
+/* --- Sign in ------------------------------------------------------------- */
 
-.placeholder {
-  color: var(--text-dim);
-  padding-top: 40px;
-  text-align: center;
+.auth {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100dvh;
+  padding: calc(var(--safe-top) + 24px) var(--pad) calc(var(--safe-bottom) + 24px);
 }
 
-.placeholder__title {
-  color: var(--text);
-  font-size: 20px;
-  font-weight: 600;
+.auth__title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth__subtitle {
+  color: var(--text-dim);
+  margin: 6px 0 28px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field__label {
+  color: var(--text-dim);
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
   margin-bottom: 6px;
+}
+
+.field__input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: var(--tap);
+  padding: 0 14px;
+  width: 100%;
+}
+
+.field__input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 14px;
+  margin-top: 14px;
+}
+
+/* --- Secondary screens --------------------------------------------------- */
+
+.screen__title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.screen__note {
+  color: var(--text-dim);
+  margin: 8px 0 24px;
 }

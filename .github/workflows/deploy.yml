@@ -30,11 +30,11 @@ jobs:
 
       # These are compiled into the bundle and are public once deployed. They
       # live in repo secrets to keep them out of git history, not because the
-      # anon key is sensitive -- Row Level Security is the actual protection.
+      # publishable key is sensitive -- RLS is the actual protection.
       - run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
       - uses: actions/configure-pages@v6
 
