@@ -1,0 +1,249 @@
+:root {
+  --bg: #0b0c0e;
+  --surface: #16181c;
+  --surface-2: #1f2229;
+  --border: #262a32;
+  --text: #f2f3f5;
+  --text-dim: #9aa0a8;
+  --accent: #ff8a4c;
+  --success: #4ade80;
+
+  --radius: 14px;
+  --pad: 16px;
+  --tap: 48px; /* minimum comfortable touch target */
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  /* Suppress the rubber-band bounce, which looks broken in standalone mode. */
+  overscroll-behavior-y: none;
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Safari zooms the page when focusing an input below 16px. Never go smaller. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+/* 100dvh tracks the visible viewport as Safari's chrome collapses. */
+#root {
+  height: 100dvh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: calc(var(--safe-top) + 20px) var(--pad) 20px;
+}
+
+/* --- Daily summary ------------------------------------------------------- */
+
+.summary__date {
+  color: var(--text-dim);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.summary__total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.summary__consumed {
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.summary__goal {
+  color: var(--text-dim);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.summary__remaining {
+  color: var(--text-dim);
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.bar {
+  background: var(--surface-2);
+  border-radius: 999px;
+  height: 10px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.bar__fill {
+  background: var(--accent);
+  border-radius: 999px;
+  height: 100%;
+}
+
+.bar__fill--met {
+  background: var(--success);
+}
+
+/* --- Meal sections ------------------------------------------------------- */
+
+.meal {
+  margin-top: 28px;
+}
+
+.meal__head {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.meal__title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meal__total {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.entries {
+  background: var(--surface);
+  border-radius: var(--radius);
+  list-style: none;
+  padding: 0;
+}
+
+.entry {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: var(--tap);
+  padding: 12px var(--pad);
+}
+
+.entry + .entry {
+  border-top: 1px solid var(--border);
+}
+
+.entry__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry__grams {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- Add button ---------------------------------------------------------- */
+
+/* Sits directly above the tab bar so it falls under the thumb one-handed. */
+.add {
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  color: #14161a;
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 var(--pad) 12px;
+  min-height: 52px;
+}
+
+.add:active {
+  opacity: 0.85;
+}
+
+/* --- Tab bar ------------------------------------------------------------- */
+
+.nav {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+}
+
+.nav__tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: var(--tap);
+  padding: 10px 0;
+}
+
+.nav__tab[aria-current='page'] {
+  color: var(--accent);
+}
+
+/* --- Placeholder screens ------------------------------------------------- */
+
+.placeholder {
+  color: var(--text-dim);
+  padding-top: 40px;
+  text-align: center;
+}
+
+.placeholder__title {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
