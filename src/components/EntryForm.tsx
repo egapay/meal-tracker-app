@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { formatGrams } from '../lib/format'
+import { formatAmount } from '../lib/format'
 import { MEAL_LABELS, MEAL_TYPES } from '../lib/types'
 import type { FoodEntry, MealType, NewFoodEntry, RecentFood } from '../lib/types'
 
@@ -86,19 +86,19 @@ export default function EntryForm({
         {!entry && recentFoods && recentFoods.length > 0 && (
           <div className="field">
             <span className="field__label">Recent</span>
-            <div className="recents">
+            <div className="chips">
               {recentFoods.map((food) => (
                 <button
                   key={food.name}
                   type="button"
-                  className="recent"
+                  className="chip"
                   onClick={() => {
                     setName(food.name)
                     setGrams(String(food.protein_grams))
                   }}
                 >
                   {food.name}
-                  <span className="recent__grams">{formatGrams(food.protein_grams)} g</span>
+                  <span className="chip__meta">{formatAmount(food.protein_grams)} g</span>
                 </button>
               ))}
             </div>

@@ -16,6 +16,12 @@ export function todayISO(): string {
   return toISODate(new Date())
 }
 
+/** The current local wall-clock time as HH:MM, matching <input type="time">. */
+export function nowTimeHHMM(): string {
+  const now = new Date()
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
+
 /** N days before today. setDate rolls months and years over correctly. */
 export function daysAgoISO(days: number): string {
   const date = new Date()

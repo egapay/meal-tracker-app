@@ -30,3 +30,19 @@ export type NewFoodEntry = Omit<FoodEntry, 'id'>
 
 /** A previously logged food, offered as a one-tap fill in the add sheet. */
 export type RecentFood = Pick<FoodEntry, 'name' | 'protein_grams'>
+
+/** A row of public.water_entries. */
+export type WaterEntry = {
+  id: string
+  entry_date: string // YYYY-MM-DD, local calendar date
+  drank_at: string // HH:MM:SS, local wall clock
+  amount_oz: number
+}
+
+export type NewWaterEntry = Omit<WaterEntry, 'id'>
+
+/** Both daily targets from public.profiles. */
+export type Goals = {
+  protein: number
+  waterOz: number
+}

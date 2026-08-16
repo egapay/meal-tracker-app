@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
-import { getDailyGoal, updateDailyGoal } from '../data/profile'
+import type { ChangeEvent, FormEvent } from 'react'
+import { getGoals, updateGoals } from '../data/profile'
 import { supabase } from '../lib/supabase'
 
 export default function Settings() {
-  const [goal, setGoal] = useState('')
+  const [protein, setProtein] = useState('')
+  const [waterOz, setWaterOz] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -13,12 +14,14 @@ export default function Settings() {
   useEffect(() => {
     let cancelled = false
 
-    getDailyGoal()
-      .then((value) => {
-        if (!cancelled) setGoal(String(value))
+    getGoals()
+      .then((goals) => {
+        if (cancelled) return
+        setProtein(String(goals.protein))
+        setWaterOz(String(goals.waterOz))
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load your goal.')
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load your goals.')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -29,25 +32,40 @@ export default function Settings() {
     }
   }, [])
 
+  function change(setter: (value: string) => void) {
+    return (event: ChangeEvent<HTMLInputElement>) => {
+      setter(event.target.value)
+      setSaved(false)
+      setError(null)
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
 
-    // Matches the CHECK constraint on profiles.daily_protein_goal, so an
-    // invalid value is caught here rather than coming back as a Postgres error.
-    const value = Number(goal)
-    if (!Number.isInteger(value) || value < 1 || value > 1000) {
-      setError('Enter a whole number between 1 and 1000.')
+    // These bounds match the CHECK constraints on profiles, so an invalid value
+    // is caught here rather than coming back as a Postgres error.
+    const proteinValue = Number(protein)
+    const waterValue = Number(waterOz)
+
+    if (!Number.isInteger(proteinValue) || proteinValue < 1 || proteinValue > 1000) {
+      setError('Protein goal must be a whole number between 1 and 1000.')
+      return
+    }
+    if (!Number.isInteger(waterValue) || waterValue < 1 || waterValue > 500) {
+      setError('Water goal must be a whole number between 1 and 500.')
       return
     }
 
     setBusy(true)
     setError(null)
     try {
-      const next = await updateDailyGoal(value)
-      setGoal(String(next))
+      const next = await updateGoals({ protein: proteinValue, waterOz: waterValue })
+      setProtein(String(next.protein))
+      setWaterOz(String(next.waterOz))
       setSaved(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Could not save your goal.')
+      setError(err instanceof Error ? err.message : 'Could not save your goals.')
     } finally {
       setBusy(false)
     }
@@ -65,12 +83,19 @@ export default function Settings() {
             <span className="field__label">Daily protein goal (g)</span>
             <input
               className="field__input"
-              value={goal}
-              onChange={(e) => {
-                setGoal(e.target.value)
-                setSaved(false)
-                setError(null)
-              }}
+              value={protein}
+              onChange={change(setProtein)}
+              inputMode="numeric"
+              required
+            />
+          </label>
+
+          <label className="field">
+            <span className="field__label">Daily water goal (oz)</span>
+            <input
+              className="field__input"
+              value={waterOz}
+              onChange={change(setWaterOz)}
               inputMode="numeric"
               required
             />
@@ -80,7 +105,7 @@ export default function Settings() {
           {saved && <p className="screen__note">Saved.</p>}
 
           <button className="btn" type="submit" disabled={busy}>
-            {busy ? 'Saving…' : 'Save goal'}
+            {busy ? 'Saving…' : 'Save goals'}
           </button>
         </form>
       )}

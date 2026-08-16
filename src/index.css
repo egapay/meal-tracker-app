@@ -6,6 +6,7 @@
   --text: #f2f3f5;
   --text-dim: #9aa0a8;
   --accent: #ff8a4c;
+  --water: #56b6f5;
   --success: #4ade80;
   --danger: #f87171;
 
@@ -134,6 +135,39 @@ button {
   background: var(--success);
 }
 
+.bar__fill--water {
+  background: var(--water);
+}
+
+/* --- Water summary ------------------------------------------------------- */
+
+.water {
+  margin-top: 22px;
+}
+
+.water__head {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.water__label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.water__value {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.water__value--met {
+  color: var(--success);
+}
+
 /* --- Meal sections ------------------------------------------------------- */
 
 .meal {
@@ -238,10 +272,15 @@ button {
   margin-top: 10px;
 }
 
-/* Layout only. Sits directly above the tab bar, under the thumb one-handed. */
-.add {
+.btn--water {
+  background: var(--water);
+}
+
+/* Sits directly above the tab bar, under the thumb one-handed. */
+.add-bar {
+  display: flex;
+  gap: 10px;
   margin: 0 var(--pad) 12px;
-  width: auto;
 }
 
 /* --- Tab bar ------------------------------------------------------------- */
@@ -340,18 +379,24 @@ button {
   margin-top: 8px;
 }
 
+/* Column, because two totals plus a date don't fit on one line at 375px. */
 .day__head {
-  align-items: center;
+  align-items: flex-start;
   background: none;
   border: none;
   color: inherit;
   display: flex;
-  gap: 12px;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
   min-height: 56px;
   padding: 12px var(--pad);
   text-align: left;
   width: 100%;
+}
+
+.day__totals {
+  display: flex;
+  gap: 16px;
 }
 
 .day__head:active {
@@ -434,18 +479,18 @@ button {
 
 /* One swipeable row rather than wrapping: eight wrapped chips add ~200px and
    push Save below the fold on shorter phones. */
-.recents {
+.chips {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-.recents::-webkit-scrollbar {
+.chips::-webkit-scrollbar {
   display: none;
 }
 
-.recent {
+.chip {
   background: var(--surface-2);
   border: none;
   border-radius: 999px;
@@ -458,11 +503,16 @@ button {
   white-space: nowrap;
 }
 
-.recent:active {
+.chip:active {
   background: var(--border);
 }
 
-.recent__grams {
+.chip[aria-pressed='true'] {
+  background: var(--water);
+  color: #14161a;
+}
+
+.chip__meta {
   color: var(--text-dim);
   margin-left: 6px;
 }

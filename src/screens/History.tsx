@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import EntryForm from '../components/EntryForm'
+import WaterForm from '../components/WaterForm'
 import { useHistory } from '../hooks/useHistory'
-import { formatGrams, formatShortDate } from '../lib/format'
-import type { FoodEntry } from '../lib/types'
+import { formatAmount, formatShortDate, formatTime } from '../lib/format'
+import type { FoodEntry, WaterEntry } from '../lib/types'
 
 export default function History() {
-  const { days, goal, loading, error, editEntry, removeEntry } = useHistory()
+  const { days, goals, loading, error, editEntry, removeEntry, editWater, removeWater } =
+    useHistory()
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [editing, setEditing] = useState<FoodEntry | null>(null)
+  const [editingFood, setEditingFood] = useState<FoodEntry | null>(null)
+  const [editingWater, setEditingWater] = useState<WaterEntry | null>(null)
 
   if (loading) return <p className="screen__note">Loading…</p>
   if (error) return <p className="error">{error}</p>
@@ -21,7 +24,8 @@ export default function History() {
       ) : (
         <ul className="days">
           {days.map((day) => {
-            const met = day.total >= goal
+            const proteinMet = day.proteinTotal >= goals.protein
+            const waterMet = day.waterTotal >= goals.waterOz
             const open = expanded === day.date
 
             return (
@@ -33,10 +37,16 @@ export default function History() {
                   onClick={() => setExpanded(open ? null : day.date)}
                 >
                   <span className="day__date">{formatShortDate(day.date)}</span>
-                  <span className={met ? 'day__total day__total--met' : 'day__total'}>
+                  <span className="day__totals">
                     {/* Not colour alone -- the check has to carry the meaning too. */}
-                    {met ? '✓ ' : ''}
-                    {formatGrams(day.total)} / {formatGrams(goal)} g
+                    <span className={proteinMet ? 'day__total day__total--met' : 'day__total'}>
+                      {proteinMet ? '✓ ' : ''}
+                      {formatAmount(day.proteinTotal)} / {formatAmount(goals.protein)} g
+                    </span>
+                    <span className={waterMet ? 'day__total day__total--met' : 'day__total'}>
+                      {waterMet ? '✓ ' : ''}
+                      {formatAmount(day.waterTotal)} / {formatAmount(goals.waterOz)} oz
+                    </span>
                   </span>
                 </button>
 
@@ -47,10 +57,25 @@ export default function History() {
                         <button
                           className="day__entry"
                           type="button"
-                          onClick={() => setEditing(entry)}
+                          onClick={() => setEditingFood(entry)}
                         >
                           <span className="entry__name">{entry.name}</span>
-                          <span className="entry__grams">{formatGrams(entry.protein_grams)} g</span>
+                          <span className="entry__grams">
+                            {formatAmount(entry.protein_grams)} g
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+
+                    {day.water.map((entry) => (
+                      <li key={entry.id}>
+                        <button
+                          className="day__entry"
+                          type="button"
+                          onClick={() => setEditingWater(entry)}
+                        >
+                          <span className="entry__name">{formatAmount(entry.amount_oz)} oz</span>
+                          <span className="entry__grams">{formatTime(entry.drank_at)}</span>
                         </button>
                       </li>
                     ))}
@@ -62,19 +87,36 @@ export default function History() {
         </ul>
       )}
 
-      {editing && (
+      {editingFood && (
         <EntryForm
-          key={editing.id}
-          defaultDate={editing.entry_date}
-          entry={editing}
-          onCancel={() => setEditing(null)}
+          key={editingFood.id}
+          defaultDate={editingFood.entry_date}
+          entry={editingFood}
+          onCancel={() => setEditingFood(null)}
           onSubmit={async (values) => {
-            await editEntry(editing.id, values)
-            setEditing(null)
+            await editEntry(editingFood.id, values)
+            setEditingFood(null)
           }}
           onDelete={async () => {
-            await removeEntry(editing.id)
-            setEditing(null)
+            await removeEntry(editingFood.id)
+            setEditingFood(null)
+          }}
+        />
+      )}
+
+      {editingWater && (
+        <WaterForm
+          key={editingWater.id}
+          defaultDate={editingWater.entry_date}
+          entry={editingWater}
+          onCancel={() => setEditingWater(null)}
+          onSubmit={async (values) => {
+            await editWater(editingWater.id, values)
+            setEditingWater(null)
+          }}
+          onDelete={async () => {
+            await removeWater(editingWater.id)
+            setEditingWater(null)
           }}
         />
       )}

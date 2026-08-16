@@ -1,4 +1,4 @@
--- Protein Tracker schema.
+-- Protein Tracker schema. Apply this first, then 002_add_water.sql.
 --
 -- Run once in the Supabase dashboard: SQL Editor -> New query -> paste -> Run.
 -- Safe to read top to bottom; it creates two tables, locks both down with Row
