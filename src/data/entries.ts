@@ -1,7 +1,13 @@
 import { supabase } from '../lib/supabase'
-import type { FoodEntry, NewFoodEntry } from '../lib/types'
+import type { FoodEntry, NewFoodEntry, RecentFood } from '../lib/types'
 
 const COLUMNS = 'id, entry_date, meal_type, name, protein_grams'
+
+/** How many chips the add sheet offers. */
+export const RECENT_LIMIT = 8
+
+/** How many rows to scan for those chips. */
+const RECENT_SCAN = 60
 
 /**
  * PostgREST can serialise a numeric column as either a JSON number or a string
@@ -22,6 +28,36 @@ export async function listEntriesByDate(date: string): Promise<FoodEntry[]> {
 
   if (error) throw error
   return data.map(normalize)
+}
+
+/**
+ * Distinct foods you've logged before, most recent first.
+ *
+ * Deduped here rather than in SQL because PostgREST exposes no DISTINCT ON, and
+ * a view or RPC would be more machinery than this needs. Scanning the last
+ * RECENT_SCAN rows is plenty to surface the handful of things eaten repeatedly.
+ */
+export async function listRecentFoods(): Promise<RecentFood[]> {
+  const { data, error } = await supabase
+    .from('food_entries')
+    .select('name, protein_grams')
+    .order('created_at', { ascending: false })
+    .limit(RECENT_SCAN)
+
+  if (error) throw error
+
+  const seen = new Map<string, RecentFood>()
+  for (const row of data) {
+    // Case-insensitive key so "Greek yogurt" and "Greek Yogurt" aren't both
+    // offered; the first (most recent) spelling and amount win.
+    const key = row.name.trim().toLowerCase()
+    if (!seen.has(key)) {
+      seen.set(key, { name: row.name, protein_grams: Number(row.protein_grams) })
+      if (seen.size === RECENT_LIMIT) break
+    }
+  }
+
+  return [...seen.values()]
 }
 
 /** Entries in [from, to). Ordered newest day first, chronological within a day. */

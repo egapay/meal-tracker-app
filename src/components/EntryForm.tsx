@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { formatGrams } from '../lib/format'
 import { MEAL_LABELS, MEAL_TYPES } from '../lib/types'
-import type { FoodEntry, MealType, NewFoodEntry } from '../lib/types'
+import type { FoodEntry, MealType, NewFoodEntry, RecentFood } from '../lib/types'
 
 /** Saves a tap in the common case: log what you just ate, now. */
 function mealTypeForNow(): MealType {
@@ -16,12 +17,21 @@ type Props = {
   defaultDate: string
   /** Present in edit mode; absent means add. */
   entry?: FoodEntry
+  /** One-tap fills. Only meaningful when adding. */
+  recentFoods?: RecentFood[]
   onSubmit: (entry: NewFoodEntry) => Promise<void>
   onDelete?: () => Promise<void>
   onCancel: () => void
 }
 
-export default function EntryForm({ defaultDate, entry, onSubmit, onDelete, onCancel }: Props) {
+export default function EntryForm({
+  defaultDate,
+  entry,
+  recentFoods,
+  onSubmit,
+  onDelete,
+  onCancel,
+}: Props) {
   const [name, setName] = useState(entry?.name ?? '')
   const [grams, setGrams] = useState(entry ? String(entry.protein_grams) : '')
   const [mealType, setMealType] = useState<MealType>(() => entry?.meal_type ?? mealTypeForNow())
@@ -71,6 +81,29 @@ export default function EntryForm({ defaultDate, entry, onSubmit, onDelete, onCa
     <div className="sheet" role="dialog" aria-modal="true" aria-label={entry ? 'Edit food' : 'Add food'}>
       <form className="sheet__panel" onSubmit={handleSubmit}>
         <h2 className="sheet__title">{entry ? 'Edit food' : 'Add food'}</h2>
+
+        {/* Add mode only: when editing, the fields are already filled. */}
+        {!entry && recentFoods && recentFoods.length > 0 && (
+          <div className="field">
+            <span className="field__label">Recent</span>
+            <div className="recents">
+              {recentFoods.map((food) => (
+                <button
+                  key={food.name}
+                  type="button"
+                  className="recent"
+                  onClick={() => {
+                    setName(food.name)
+                    setGrams(String(food.protein_grams))
+                  }}
+                >
+                  {food.name}
+                  <span className="recent__grams">{formatGrams(food.protein_grams)} g</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <label className="field">
           <span className="field__label">Food</span>

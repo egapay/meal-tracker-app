@@ -15,7 +15,8 @@ export default function Today({ adding, onCloseAdd }: Props) {
   // Captured once on mount. An app left open across midnight keeps showing the
   // old day until relaunched, which is fine for a phone app that gets reopened.
   const [date] = useState(todayISO)
-  const { goal, entries, loading, error, addEntry, editEntry, removeEntry } = useToday(date)
+  const { goal, entries, recentFoods, loading, error, addEntry, editEntry, removeEntry } =
+    useToday(date)
   const [editing, setEditing] = useState<FoodEntry | null>(null)
 
   const consumed = entries.reduce((sum, entry) => sum + entry.protein_grams, 0)
@@ -92,6 +93,7 @@ export default function Today({ adding, onCloseAdd }: Props) {
           key={editing?.id ?? 'new'}
           defaultDate={date}
           entry={editing ?? undefined}
+          recentFoods={recentFoods}
           onCancel={closeSheet}
           onSubmit={async (values) => {
             if (editing) await editEntry(editing.id, values)

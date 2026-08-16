@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
-import { listEntriesBetween } from '../data/entries'
+import { useCallback, useEffect, useState } from 'react'
+import { deleteEntry, listEntriesBetween, updateEntry } from '../data/entries'
 import { getDailyGoal } from '../data/profile'
 import { daysAgoISO, todayISO } from '../lib/date'
-import type { FoodEntry } from '../lib/types'
+import type { FoodEntry, NewFoodEntry } from '../lib/types'
 
 /** How far back History reaches. Bounded so the query can't grow forever. */
 const HISTORY_DAYS = 90
@@ -40,17 +40,21 @@ export function useHistory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const load = useCallback(async () => {
+    // Exclusive of today, which has its own screen.
+    const [dailyGoal, rows] = await Promise.all([
+      getDailyGoal(),
+      listEntriesBetween(daysAgoISO(HISTORY_DAYS), todayISO()),
+    ])
+    setGoal(dailyGoal)
+    setDays(groupByDate(rows))
+    setError(null)
+  }, [])
+
   useEffect(() => {
     let cancelled = false
 
-    // Exclusive of today, which has its own screen.
-    Promise.all([getDailyGoal(), listEntriesBetween(daysAgoISO(HISTORY_DAYS), todayISO())])
-      .then(([dailyGoal, rows]) => {
-        if (cancelled) return
-        setGoal(dailyGoal)
-        setDays(groupByDate(rows))
-        setError(null)
-      })
+    load()
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load history.')
       })
@@ -61,7 +65,27 @@ export function useHistory() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [load])
 
-  return { days, goal, loading, error }
+  // Both mutations refetch rather than patching state. An edit can move an
+  // entry to another day or onto today (dropping it from this window), and a
+  // delete can empty a day entirely -- reconciling all that by hand would be
+  // more code than one query, and easier to get subtly wrong.
+  const editEntry = useCallback(
+    async (id: string, entry: NewFoodEntry) => {
+      await updateEntry(id, entry)
+      await load()
+    },
+    [load],
+  )
+
+  const removeEntry = useCallback(
+    async (id: string) => {
+      await deleteEntry(id)
+      await load()
+    },
+    [load],
+  )
+
+  return { days, goal, loading, error, editEntry, removeEntry }
 }

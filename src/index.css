@@ -382,13 +382,22 @@ button {
   border-top: 1px solid var(--border);
 }
 
-/* Read-only rows: editing happens on Today. */
 .day__entry {
   align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
   display: flex;
   gap: 12px;
   justify-content: space-between;
+  min-height: var(--tap);
   padding: 11px var(--pad);
+  text-align: left;
+  width: 100%;
+}
+
+.day__entry:active {
+  background: var(--surface-2);
 }
 
 /* --- Add-food sheet ------------------------------------------------------ */
@@ -421,6 +430,41 @@ button {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+}
+
+/* One swipeable row rather than wrapping: eight wrapped chips add ~200px and
+   push Save below the fold on shorter phones. */
+.recents {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.recents::-webkit-scrollbar {
+  display: none;
+}
+
+.recent {
+  background: var(--surface-2);
+  border: none;
+  border-radius: 999px;
+  color: var(--text);
+  flex: 0 0 auto;
+  font-size: 14px;
+  /* 44px is Apple's minimum comfortable target; chips can't take the full 48. */
+  min-height: 44px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.recent:active {
+  background: var(--border);
+}
+
+.recent__grams {
+  color: var(--text-dim);
+  margin-left: 6px;
 }
 
 .segmented {

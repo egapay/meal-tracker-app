@@ -27,3 +27,6 @@ export type FoodEntry = {
 
 /** Fields the client supplies; user_id comes from the session, the rest default. */
 export type NewFoodEntry = Omit<FoodEntry, 'id'>
+
+/** A previously logged food, offered as a one-tap fill in the add sheet. */
+export type RecentFood = Pick<FoodEntry, 'name' | 'protein_grams'>
