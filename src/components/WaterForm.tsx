@@ -70,7 +70,7 @@ export default function WaterForm({ defaultDate, entry, onSubmit, onDelete, onCa
 
         <div className="field">
           <span className="field__label">Quick amounts</span>
-          <div className="chips">
+          <div className="chips chips--wrap">
             {PRESETS_OZ.map((preset) => (
               <button
                 key={preset}

@@ -79,8 +79,14 @@ button {
 
 .main {
   flex: 1;
+  /* Explicit. Setting only overflow-y makes the CSS spec compute overflow-x
+     from visible to auto, which silently turns this into a horizontal scroll
+     container that pans under a touch drag. */
+  overflow-x: hidden;
   overflow-y: auto;
   padding: calc(var(--safe-top) + 20px) var(--pad) 20px;
+  /* Nothing in here scrolls sideways, so refuse horizontal pan gestures. */
+  touch-action: pan-y;
 }
 
 /* --- Daily summary ------------------------------------------------------- */
@@ -361,6 +367,13 @@ button {
   margin-top: 14px;
 }
 
+.error-state {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
 /* --- History ------------------------------------------------------------- */
 
 .days {
@@ -460,7 +473,12 @@ button {
   background: var(--surface);
   border-radius: 20px 20px 0 0;
   max-height: 92dvh;
+  /* overflow-x must be stated: leaving it at visible makes it compute to auto
+     (see .main), which is what let the sheet slide left and right. */
+  overflow-x: hidden;
   overflow-y: auto;
+  /* Keeps a scroll gesture inside the sheet instead of chaining to the page. */
+  overscroll-behavior: contain;
   padding: 20px var(--pad) calc(var(--safe-bottom) + 20px);
   width: 100%;
 }
@@ -488,6 +506,14 @@ button {
 
 .chips::-webkit-scrollbar {
   display: none;
+}
+
+/* Water's presets are a fixed set of five, so they can wrap and never need to
+   be a scroll container at all. The recent-foods strip keeps the swipe because
+   it can hold eight arbitrary-length names. */
+.chips--wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
 }
 
 .chip {

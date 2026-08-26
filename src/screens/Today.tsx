@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import EntryForm from '../components/EntryForm'
 import WaterForm from '../components/WaterForm'
 import { useToday } from '../hooks/useToday'
@@ -15,9 +15,7 @@ type Props = {
 }
 
 export default function Today({ sheet, onCloseSheet }: Props) {
-  // Captured once on mount. An app left open across midnight keeps showing the
-  // old day until relaunched, which is fine for a phone app that gets reopened.
-  const [date] = useState(todayISO)
+  const [date, setDate] = useState(todayISO)
   const {
     goals,
     entries,
@@ -25,6 +23,7 @@ export default function Today({ sheet, onCloseSheet }: Props) {
     recentFoods,
     loading,
     error,
+    reload,
     addEntry,
     editEntry,
     removeEntry,
@@ -32,6 +31,26 @@ export default function Today({ sheet, onCloseSheet }: Props) {
     editWater,
     removeWater,
   } = useToday(date)
+
+  // Reopening a Home Screen app can be hours later, on a different day, and its
+  // first request can land before iOS has the network up. Re-check both on
+  // foreground -- this is what the tab-switch dance was working around.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return
+
+      const current = todayISO()
+      if (current !== date) {
+        // Changing the date re-runs the hook's own fetch; don't double up.
+        setDate(current)
+      } else {
+        void reload({ silent: true })
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [date, reload])
 
   const [editingFood, setEditingFood] = useState<FoodEntry | null>(null)
   const [editingWater, setEditingWater] = useState<WaterEntry | null>(null)
@@ -60,7 +79,12 @@ export default function Today({ sheet, onCloseSheet }: Props) {
   const body = loading ? (
     <p className="screen__note">Loading…</p>
   ) : error ? (
-    <p className="error">{error}</p>
+    <div className="error-state">
+      <p className="error">{error}</p>
+      <button className="btn btn--secondary" type="button" onClick={() => void reload()}>
+        Try again
+      </button>
+    </div>
   ) : (
     <>
       <header>

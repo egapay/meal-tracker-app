@@ -3,6 +3,7 @@ import { deleteEntry, listEntriesBetween, updateEntry } from '../data/entries'
 import { getGoals } from '../data/profile'
 import { deleteWater, listWaterBetween, updateWater } from '../data/water'
 import { daysAgoISO, todayISO } from '../lib/date'
+import { withRetry } from '../lib/retry'
 import type { FoodEntry, Goals, NewFoodEntry, NewWaterEntry, WaterEntry } from '../lib/types'
 
 /** How far back History reaches. Bounded so the query can't grow forever. */
@@ -58,37 +59,32 @@ export function useHistory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const load = useCallback(async () => {
-    // Exclusive of today, which has its own screen.
-    const from = daysAgoISO(HISTORY_DAYS)
-    const to = todayISO()
+  const reload = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) setLoading(true)
 
-    const [dailyGoals, food, water] = await Promise.all([
-      getGoals(),
-      listEntriesBetween(from, to),
-      listWaterBetween(from, to),
-    ])
+    try {
+      // Exclusive of today, which has its own screen. Recomputed each call so a
+      // long-lived app doesn't keep querying yesterday's window.
+      const from = daysAgoISO(HISTORY_DAYS)
+      const to = todayISO()
 
-    setGoals(dailyGoals)
-    setDays(groupByDate(food, water))
-    setError(null)
+      const [dailyGoals, food, water] = await withRetry(() =>
+        Promise.all([getGoals(), listEntriesBetween(from, to), listWaterBetween(from, to)]),
+      )
+
+      setGoals(dailyGoals)
+      setDays(groupByDate(food, water))
+      setError(null)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not load history.')
+    } finally {
+      if (!options?.silent) setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    let cancelled = false
-
-    load()
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load history.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [load])
+    void reload()
+  }, [reload])
 
   // All four mutations refetch rather than patching state. An edit can move an
   // entry to another day or onto today (dropping it from this window), and a
@@ -97,34 +93,34 @@ export function useHistory() {
   const editEntry = useCallback(
     async (id: string, entry: NewFoodEntry) => {
       await updateEntry(id, entry)
-      await load()
+      await reload({ silent: true })
     },
-    [load],
+    [reload],
   )
 
   const removeEntry = useCallback(
     async (id: string) => {
       await deleteEntry(id)
-      await load()
+      await reload({ silent: true })
     },
-    [load],
+    [reload],
   )
 
   const editWater = useCallback(
     async (id: string, entry: NewWaterEntry) => {
       await updateWater(id, entry)
-      await load()
+      await reload({ silent: true })
     },
-    [load],
+    [reload],
   )
 
   const removeWater = useCallback(
     async (id: string) => {
       await deleteWater(id)
-      await load()
+      await reload({ silent: true })
     },
-    [load],
+    [reload],
   )
 
-  return { days, goals, loading, error, editEntry, removeEntry, editWater, removeWater }
+  return { days, goals, loading, error, reload, editEntry, removeEntry, editWater, removeWater }
 }

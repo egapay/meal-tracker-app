@@ -9,7 +9,15 @@ import {
 } from '../data/entries'
 import { getGoals } from '../data/profile'
 import { createWater, deleteWater, listWaterByDate, updateWater } from '../data/water'
-import type { FoodEntry, Goals, NewFoodEntry, NewWaterEntry, RecentFood, WaterEntry } from '../lib/types'
+import { withRetry } from '../lib/retry'
+import type {
+  FoodEntry,
+  Goals,
+  NewFoodEntry,
+  NewWaterEntry,
+  RecentFood,
+  WaterEntry,
+} from '../lib/types'
 
 const NO_GOALS: Goals = { protein: 0, waterOz: 0 }
 
@@ -22,36 +30,41 @@ export function useToday(date: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
+  /**
+   * `silent` skips the loading state, for background refreshes where flashing
+   * "Loading..." over already-correct data would be worse than showing nothing.
+   */
+  const reload = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!options?.silent) setLoading(true)
 
-    // All four in parallel, so water and the chips cost no extra latency.
-    Promise.all([
-      getGoals(),
-      listEntriesByDate(date),
-      listWaterByDate(date),
-      listRecentFoods(),
-    ])
-      .then(([dailyGoals, foodRows, waterRows, recents]) => {
-        if (cancelled) return
+      try {
+        // All four in parallel, so water and the chips cost no extra latency.
+        const [dailyGoals, foodRows, waterRows, recents] = await withRetry(() =>
+          Promise.all([
+            getGoals(),
+            listEntriesByDate(date),
+            listWaterByDate(date),
+            listRecentFoods(),
+          ]),
+        )
         setGoals(dailyGoals)
         setEntries(foodRows)
         setWater(waterRows)
         setRecentFoods(recents)
         setError(null)
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load today.')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Could not load today.')
+      } finally {
+        if (!options?.silent) setLoading(false)
+      }
+    },
+    [date],
+  )
 
-    return () => {
-      cancelled = true
-    }
-  }, [date])
+  useEffect(() => {
+    void reload()
+  }, [reload])
 
   const addEntry = useCallback(
     async (entry: NewFoodEntry) => {
@@ -129,6 +142,7 @@ export function useToday(date: string) {
     recentFoods,
     loading,
     error,
+    reload,
     addEntry,
     editEntry,
     removeEntry,

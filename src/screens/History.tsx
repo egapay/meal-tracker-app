@@ -6,14 +6,22 @@ import { formatAmount, formatShortDate, formatTime } from '../lib/format'
 import type { FoodEntry, WaterEntry } from '../lib/types'
 
 export default function History() {
-  const { days, goals, loading, error, editEntry, removeEntry, editWater, removeWater } =
+  const { days, goals, loading, error, reload, editEntry, removeEntry, editWater, removeWater } =
     useHistory()
   const [expanded, setExpanded] = useState<string | null>(null)
   const [editingFood, setEditingFood] = useState<FoodEntry | null>(null)
   const [editingWater, setEditingWater] = useState<WaterEntry | null>(null)
 
   if (loading) return <p className="screen__note">Loading…</p>
-  if (error) return <p className="error">{error}</p>
+  if (error)
+    return (
+      <div className="error-state">
+        <p className="error">{error}</p>
+        <button className="btn btn--secondary" type="button" onClick={() => void reload()}>
+          Try again
+        </button>
+      </div>
+    )
 
   return (
     <>
