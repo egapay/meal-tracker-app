@@ -57,10 +57,12 @@ export function useHistory() {
   const [days, setDays] = useState<DaySummary[]>([])
   const [goals, setGoals] = useState<Goals>(NO_GOALS)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async (options?: { silent?: boolean }) => {
-    if (!options?.silent) setLoading(true)
+    if (options?.silent) setRefreshing(true)
+    else setLoading(true)
 
     try {
       // Exclusive of today, which has its own screen. Recomputed each call so a
@@ -78,7 +80,8 @@ export function useHistory() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Could not load history.')
     } finally {
-      if (!options?.silent) setLoading(false)
+      if (options?.silent) setRefreshing(false)
+      else setLoading(false)
     }
   }, [])
 
@@ -122,5 +125,16 @@ export function useHistory() {
     [reload],
   )
 
-  return { days, goals, loading, error, reload, editEntry, removeEntry, editWater, removeWater }
+  return {
+    days,
+    goals,
+    loading,
+    refreshing,
+    error,
+    reload,
+    editEntry,
+    removeEntry,
+    editWater,
+    removeWater,
+  }
 }

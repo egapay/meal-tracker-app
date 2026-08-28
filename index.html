@@ -21,7 +21,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Shown from first paint until React mounts. The stylesheet above is
+         render-blocking, so this is already styled; createRoot replaces it. -->
+    <div id="root">
+      <div class="loading loading--full">
+        <div class="spinner"></div>
+        <p class="loading__text">Loading…</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -28,6 +28,7 @@ export function useToday(date: string) {
   const [water, setWater] = useState<WaterEntry[]>([])
   const [recentFoods, setRecentFoods] = useState<RecentFood[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   /**
@@ -36,7 +37,8 @@ export function useToday(date: string) {
    */
   const reload = useCallback(
     async (options?: { silent?: boolean }) => {
-      if (!options?.silent) setLoading(true)
+      if (options?.silent) setRefreshing(true)
+    else setLoading(true)
 
       try {
         // All four in parallel, so water and the chips cost no extra latency.
@@ -56,7 +58,8 @@ export function useToday(date: string) {
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Could not load today.')
       } finally {
-        if (!options?.silent) setLoading(false)
+        if (options?.silent) setRefreshing(false)
+      else setLoading(false)
       }
     },
     [date],
@@ -141,6 +144,7 @@ export function useToday(date: string) {
     water,
     recentFoods,
     loading,
+    refreshing,
     error,
     reload,
     addEntry,

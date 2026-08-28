@@ -374,6 +374,96 @@ button {
   padding-top: 8px;
 }
 
+/* --- Loading ------------------------------------------------------------- */
+
+.loading {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 64px;
+}
+
+/* Used before the app shell exists: the pre-React markup in index.html and the
+   moment where the stored session is still being read. */
+.loading--full {
+  height: 100dvh;
+  justify-content: center;
+  padding-top: 0;
+}
+
+.spinner {
+  animation: spin 0.7s linear infinite;
+  border: 3px solid var(--surface-2);
+  border-radius: 50%;
+  border-top-color: var(--accent);
+  height: 28px;
+  width: 28px;
+}
+
+.loading__text {
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Background refresh: the data on screen is still valid, so it gets a thin bar
+   rather than a spinner that would blank out correct content. */
+.refreshing {
+  background: var(--surface-2);
+  height: 2px;
+  left: 0;
+  overflow: hidden;
+  position: fixed;
+  right: 0;
+  /* Below the status bar, which content sits under thanks to viewport-fit. */
+  top: var(--safe-top);
+  z-index: 20;
+}
+
+.refreshing::after {
+  animation: sweep 1.1s ease-in-out infinite;
+  background: var(--accent);
+  content: '';
+  display: block;
+  height: 100%;
+  width: 40%;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(350%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .refreshing::after {
+    animation: none;
+  }
+
+  .refreshing::after {
+    width: 100%;
+  }
+}
+
+/* --- Water summary remaining --------------------------------------------- */
+
+.water__remaining {
+  color: var(--text-dim);
+  font-size: 15px;
+  margin-top: 10px;
+}
+
 /* --- History ------------------------------------------------------------- */
 
 .days {

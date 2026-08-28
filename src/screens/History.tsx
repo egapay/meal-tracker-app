@@ -1,18 +1,29 @@
 import { useState } from 'react'
 import EntryForm from '../components/EntryForm'
+import Loading from '../components/Loading'
 import WaterForm from '../components/WaterForm'
 import { useHistory } from '../hooks/useHistory'
 import { formatAmount, formatShortDate, formatTime } from '../lib/format'
 import type { FoodEntry, WaterEntry } from '../lib/types'
 
 export default function History() {
-  const { days, goals, loading, error, reload, editEntry, removeEntry, editWater, removeWater } =
-    useHistory()
+  const {
+    days,
+    goals,
+    loading,
+    refreshing,
+    error,
+    reload,
+    editEntry,
+    removeEntry,
+    editWater,
+    removeWater,
+  } = useHistory()
   const [expanded, setExpanded] = useState<string | null>(null)
   const [editingFood, setEditingFood] = useState<FoodEntry | null>(null)
   const [editingWater, setEditingWater] = useState<WaterEntry | null>(null)
 
-  if (loading) return <p className="screen__note">Loading…</p>
+  if (loading) return <Loading />
   if (error)
     return (
       <div className="error-state">
@@ -25,6 +36,7 @@ export default function History() {
 
   return (
     <>
+      {refreshing && <div className="refreshing" role="status" aria-label="Refreshing" />}
       <h1 className="screen__title">History</h1>
 
       {days.length === 0 ? (

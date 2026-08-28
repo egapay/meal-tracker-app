@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Loading from './components/Loading'
 import NavBar, { type Tab } from './components/NavBar'
 import { useAuth } from './hooks/useAuth'
 import SignIn from './screens/SignIn'
@@ -11,9 +12,9 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('today')
   const [sheet, setSheet] = useState<Sheet | null>(null)
 
-  // Empty shell rather than a spinner: reading the stored session is fast, and
-  // a spinner that flashes for 30ms reads as jank.
-  if (loading) return <div className="app" />
+  // Reading the stored session is usually instant, but on a cold PWA launch it
+  // can take long enough that a blank screen looks like a hang.
+  if (loading) return <Loading full />
   if (!session) return <SignIn />
 
   return (

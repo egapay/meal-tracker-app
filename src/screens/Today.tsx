@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import EntryForm from '../components/EntryForm'
+import Loading from '../components/Loading'
 import WaterForm from '../components/WaterForm'
 import { useToday } from '../hooks/useToday'
 import { todayISO } from '../lib/date'
@@ -22,6 +23,7 @@ export default function Today({ sheet, onCloseSheet }: Props) {
     water,
     recentFoods,
     loading,
+    refreshing,
     error,
     reload,
     addEntry,
@@ -61,6 +63,7 @@ export default function Today({ sheet, onCloseSheet }: Props) {
 
   const drunk = water.reduce((sum, entry) => sum + entry.amount_oz, 0)
   const waterMet = goals.waterOz > 0 && drunk >= goals.waterOz
+  const waterRemaining = Math.max(0, goals.waterOz - drunk)
   const waterPercent = goals.waterOz > 0 ? Math.min(100, (drunk / goals.waterOz) * 100) : 0
 
   const groups = MEAL_TYPES.map((type) => ({
@@ -77,7 +80,7 @@ export default function Today({ sheet, onCloseSheet }: Props) {
   // The sheets render outside this branch: an early return here would leave
   // App's add buttons visible but dead whenever the day failed to load.
   const body = loading ? (
-    <p className="screen__note">Loading…</p>
+    <Loading />
   ) : error ? (
     <div className="error-state">
       <p className="error">{error}</p>
@@ -118,6 +121,9 @@ export default function Today({ sheet, onCloseSheet }: Props) {
             style={{ width: `${waterPercent}%` }}
           />
         </div>
+        <p className="water__remaining">
+          {waterMet ? 'Goal reached' : `${formatAmount(waterRemaining)} oz remaining`}
+        </p>
       </section>
 
       {groups.length === 0 && water.length === 0 && (
@@ -168,6 +174,7 @@ export default function Today({ sheet, onCloseSheet }: Props) {
 
   return (
     <>
+      {refreshing && <div className="refreshing" role="status" aria-label="Refreshing" />}
       {body}
 
       {(sheet === 'food' || editingFood) && (
