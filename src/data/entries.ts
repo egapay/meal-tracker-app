@@ -3,10 +3,10 @@ import type { FoodEntry, NewFoodEntry, RecentFood } from '../lib/types'
 
 const COLUMNS = 'id, entry_date, meal_type, name, protein_grams'
 
-/** How many chips the add sheet offers. */
-export const RECENT_LIMIT = 8
+/** How many distinct foods to remember for the add sheet's suggestions. */
+export const RECENT_LIMIT = 40
 
-/** How many rows to scan for those chips. */
+/** How many rows to scan for those foods. */
 const RECENT_SCAN = 60
 
 /**

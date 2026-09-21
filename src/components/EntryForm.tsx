@@ -13,6 +13,28 @@ function mealTypeForNow(): MealType {
   return 'dinner'
 }
 
+/** How many suggestion chips to show at once. */
+const SUGGESTION_LIMIT = 8
+
+/**
+ * Previously logged foods matching what's been typed so far, best match first.
+ * Prefix matches rank above mid-word ones, so "egg" offers "Eggs" before
+ * "Scrambled eggs"; within each rank the caller's recency order is kept.
+ */
+function suggest(foods: RecentFood[], query: string): RecentFood[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return foods.slice(0, SUGGESTION_LIMIT)
+
+  const prefix: RecentFood[] = []
+  const contains: RecentFood[] = []
+  for (const food of foods) {
+    const name = food.name.toLowerCase()
+    if (name.startsWith(q)) prefix.push(food)
+    else if (name.includes(q)) contains.push(food)
+  }
+  return [...prefix, ...contains].slice(0, SUGGESTION_LIMIT)
+}
+
 type Props = {
   defaultDate: string
   /** Present in edit mode; absent means add. */
@@ -39,6 +61,8 @@ export default function EntryForm({
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const suggestions = suggest(recentFoods ?? [], name)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -83,11 +107,11 @@ export default function EntryForm({
         <h2 className="sheet__title">{entry ? 'Edit food' : 'Add food'}</h2>
 
         {/* Add mode only: when editing, the fields are already filled. */}
-        {!entry && recentFoods && recentFoods.length > 0 && (
+        {!entry && suggestions.length > 0 && (
           <div className="field">
-            <span className="field__label">Recent</span>
+            <span className="field__label">{name.trim() ? 'Matches' : 'Recent'}</span>
             <div className="chips">
-              {recentFoods.map((food) => (
+              {suggestions.map((food) => (
                 <button
                   key={food.name}
                   type="button"
